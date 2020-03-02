@@ -11,11 +11,22 @@
 //}
 //export default EntranceScreen;
 
-
 import React, { Component } from 'react';
 import { Text, View, StyleSheet, Button, TextInput, Alert, ToastAndroid, ActivityIndicator, AsyncStorage } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+
+
+const styles = StyleSheet.create({
+
+    Mheading: {
+        color: '#1e90ff',
+        fontWeight: 'bold',
+        fontSize: 30,
+        textAlign: 'center'
+    }
+
+});
 
 export default class Welcome extends Component {
     render() {
@@ -23,9 +34,32 @@ export default class Welcome extends Component {
         return (
             <View>
                 <Text> </Text>
-                <Text style={{ color: '#4094f0', textAlign: 'center', fontSize: 25 }}>Welcome to Chittr</Text>
+                <Text style={styles.Mheading}> Welcome to Chittr </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
+                <Text> </Text>
                 <Text> </Text>
                 <Button title="Create Account" onPress={() => navigate("AccountCreation")} />
+                <Text> </Text>
+                <Text> </Text>
+                <Button title="Login" onPress={() => navigate("Login")} />
             </View>
         )
     }
