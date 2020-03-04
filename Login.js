@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { Text, View, Button, TextInput } from 'react-native';
 
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+
+const Tab = createBottomTabNavigator();
+
 class Login extends Component {
     constructor(props) {
         super(props);
@@ -18,7 +22,7 @@ class Login extends Component {
     }
 
     login = () => {
-        var returnJson = '';
+        const { navigate } = this.props.navigation;
         fetch('http://10.0.2.2:3333/api/v0.0.5/login',
             {
                 method: 'POST',
@@ -31,15 +35,17 @@ class Login extends Component {
                     password: this.state.password
                 })
             })
-            .then(r => r.json().then(data => ({ status: r.status, body: data })))
-            .then(obj => console.log(obj));
-        // if (returnJson.includes("200") == true){
-        //   ToastAndroid.show("Valid User", ToastAndroid.SHORT);
-        // }
+
+            .then(r => r.json())
+            .then((returnJson) => {
+                console.log(returnJson)
+                navigate("UserProfile");
+            });
+    
     }
 
     render() {
-        const { navigate } = this.props.navigation;
+        
         return (
             <View>
                 <Text> </Text>
@@ -59,9 +65,9 @@ class Login extends Component {
                 <Text> </Text>
                 <Text> </Text>
                 <Text> </Text>
-                <Button title="Submit data" onPress={this.login}></Button>
-                <Text> </Text>
-                <Button title="Login to User Area" onPress={() => navigate("UserProfile")} />
+                <Button title="Login" onPress={this.login}></Button>
+     
+                
 
             </View>
         )
