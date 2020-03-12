@@ -1,56 +1,123 @@
-
 import React, { Component } from 'react';
-import { FlatList, ActivityIndicator, Text, View, Button, TextInput, Alert } from 'react-native';
+import { Text, View, Button, TextInput, Alert, ToastAndroid, ActivityIndicator, AsyncStorage, KeyboardAvoidingView, TouchableOpacity, ToolbarAndroid } from 'react-native';
 
-class PostChit extends Component {
 
+export default class CreateChit extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            chit_id: 0,
-            timestamp: 0,
-            chit_content: "string"
-        }
+            token: '',
+            chit_id: -1,
+            timestamp: '',
+            chit_content: '',
+            location: {
+                longitude: -1,
+                latitude: -1
+            },
+            user: {
+                user_id: -1,
+                given_name: '',
+                family_name: '',
+                email: ''
+            }
+        };
     }
 
-    addItem() {
+    setLat = (latPassed) => {
+        this.state.location.latitude = parseInt(latPassed);
+    }
+    setLong = (longPassed) => {
+        this.state.location.longitude = parseInt(longPassed);
+    }
+    setGName = (givenName) => {
+        this.state.user.given_name = givenName;
+    }
+    setFName = (familyName) => {
+        this.state.user.family_name = familyName;
+    }
+    setEmail = (emailPassed) => {
+        this.state.user.email = emailPassed;
+    }
 
-        let myObj = {
-            chit_id: parseInt(this.state.chit_id),
-            timestamp: this.state.timestamp,
-            chit_content: this.state.chit_content
+    getToken = async () => {
+        try {
+            const token = await AsyncStorage.getItem('Token');
+            if (token !== null) {
+                console.log("Retrived the Token and it is:" + token)
+                return (token)
+            }
         }
+        catch (error) {
+            console.log(error)
+        }
+    };
+    getId = async () => {
+        try {
+            const id = await AsyncStorage.getItem('id');
+            console.log("Retrived the ID and it is: " + id)
+            if (id !== null) {
+                this.state.user.user_id = parseInt(id);
+                return (id)
+            }
+        }
+        catch (error) {
+            console.log(error)
+        }
+    };
 
-        console.log(myObj);
+    waitTimer = async () => {
+        var token = await this.getToken();
+        var id = await this.getTd();
+        this.setState({ token: token })
+    }
 
-        return fetch("http://10.0.2.2:3333/api/v0.0.5/chits'",
+    createChit = () => {
+        const displayToken = this.state.token
+        const { navigate } = this.props.navigation;
+        fetch('http://10.0.2.2:3333/api/v0.0.5/chits',
             {
                 method: 'POST',
-                body: myObj
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Authorization': "" + displayToken
+                },
+                body: JSON.stringify({
+                    chit_id: this.state.chit_id,
+                    timestamp: this.state.timestamp,
+                    chit_content: this.state.chit_content,
+                    location: {
+                        longitude: this.state.location.longitude,
+                        latitude: this.state.location.latitude
+                    },
+                    user: {
+                        user_id: this.state.user.user_id,
+                        given_name: this.state.given_name,
+                        family_name: this.state.family_name,
+                        email: this.state.email
+                    }
+                })
             })
-            .then((response) => {
-                Alert.alert("Chit Posted!");
-            })
-            .catch((error) => {
-                console.error(error);
+            .then((data) => {
+                ToastAndroid.show("Posted Chit", ToastAndroid.SHORT)
             });
     }
+
     render() {
-
-
         return (
             <View>
-                <Text style={{ color: '#4094f0', textAlign: 'center', fontSize: 25 }}>Post a CHIT</Text>
+                <Text style={{ color: '#4094f0', textAlign: 'center', fontSize: 25 }}>Create chit</Text>
                 <Text></Text>
-                <TextInput placeholder="ID:" onChangeText={(text) => this.setState({ "id": text })} value={this.state.id} />
-                <TextInput placeholder="Time" onChangeText={(text) => this.setState({ "timestamp": text })} value={this.state.timestamp} />
-                <TextInput placeholder="CHIT" onChangeText={(text) => this.setState({ "chit_content": text })} value={this.state.chit_content} />
-
-                <Button title="Add" onPress={() => this.addItem()} />
-
+                <TextInput placeholder="Chit ID" onChangeText={(chit_id) => this.setState({ chit_id: parseInt(chit_id) })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="timestamp" onChangeText={(timestamp) => this.setState({ timestamp: parseInt(timestamp) })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="chit_content" onChangeText={(chit_content) => this.setState({ chit_content: chit_content })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Location lat" onChangeText={(latitude) => this.setLat(latitude)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Location long" onChangeText={(longitude) => this.setLong(longitude)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="First Name" onChangeText={(GName) => this.setGName(GName)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Surname" onChangeText={(FName) => this.setFName(FName)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Email" onChangeText={(email) => this.setEmail(email)} underlineColorAndroid="transparent"></TextInput>
+                <Button title="Create chit" onPress={this.waitTimer} />
             </View>
         )
     }
 }
-
-export default PostChit
