@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Text, View, Button, TextInput, Alert, ToastAndroid, ActivityIndicator, AsyncStorage, KeyboardAvoidingView, TouchableOpacity, ToolbarAndroid } from 'react-native';
-
+import { Text, View, Button, TextInput, Alert, PermissionsAndroid,ToastAndroid, ActivityIndicator, AsyncStorage, KeyboardAvoidingView, TouchableOpacity, ToolbarAndroid } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
 
 export default class CreateChit extends Component {
     constructor(props) {
@@ -19,7 +19,8 @@ export default class CreateChit extends Component {
                 given_name: '',
                 family_name: '',
                 email: ''
-            }
+            },
+            locationPermission: false
         };
     }
 
@@ -29,14 +30,64 @@ export default class CreateChit extends Component {
     setLong = (longPassed) => {
         this.state.location.longitude = parseInt(longPassed);
     }
-    setGName = (givenName) => {
+    setGivenName = (givenName) => {
         this.state.user.given_name = givenName;
     }
-    setFName = (familyName) => {
+    setFamilyName = (familyName) => {
         this.state.user.family_name = familyName;
     }
     setEmail = (emailPassed) => {
         this.state.user.email = emailPassed;
+    }
+
+    requestLocationPermission = async () => {
+        try {
+            const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION, {
+                title: 'Chit Location Permission',
+                message:
+                    'This app requires access to your location.',
+                buttonNeutral: 'Ask Me Later',
+                buttonNegative: 'Cancel',
+                buttonPositive: 'OK',            });
+            if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+                console.log('You can access location');
+                return true;
+            } else {
+                console.log('Location permission denied');
+                return false;
+            }
+        }
+        catch (error) {
+            console.warn(error);
+        }
+    }
+
+    findCoordinates = () => {
+        if (!this.state.locationPermission) {
+            this.state.locationPermission = this.requestLocationPermission();
+        }
+        Geolocation.getCurrentPosition(
+            (position) => {
+                const location = JSON.stringify(position);
+                console.log(location);
+                const locationJSON = JSON.parse(location);
+                this.setLat(locationJSON.coords.latitude);
+                this.setLong(locationJSON.coords.longitude);
+                const lat = this.state.location.latitude;
+                const stringlat = lat.toString();
+                const long = this.state.location.longitude;
+                const stringlong = long.toString();
+                console.log("Lat is: " + stringlat)
+                console.log("Long is: " + stringlong)
+            },            (error) => {
+                Alert.alert(error.message)
+            }, {
+            enableHighAccuracy: true, timeout: 20000, maximumAge: 1000
+        });
+    };
+
+    componentDidMount = () => {
+        this.findCoordinates();
     }
 
     getToken = async () => {
@@ -67,8 +118,9 @@ export default class CreateChit extends Component {
 
     waitTimer = async () => {
         var token = await this.getToken();
-        var id = await this.getTd();
+        var id = await this.getId();
         this.setState({ token: token })
+        this.createChit();
     }
 
     createChit = () => {
@@ -101,22 +153,31 @@ export default class CreateChit extends Component {
             .then((data) => {
                 ToastAndroid.show("Posted Chit", ToastAndroid.SHORT)
             });
+
+       
+    }
+
+    upload = () => {
+        const { navigate } = this.props.navigation;
+        navigate("UploadChit")
     }
 
     render() {
         return (
             <View>
-                <Text style={{ color: '#4094f0', textAlign: 'center', fontSize: 25 }}>Create chit</Text>
+                <Text style={{ color: 'turquoise', textAlign: 'center', fontSize: 25 }}>Post a chit</Text>
                 <Text></Text>
-                <TextInput placeholder="Chit ID" onChangeText={(chit_id) => this.setState({ chit_id: parseInt(chit_id) })} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="timestamp" onChangeText={(timestamp) => this.setState({ timestamp: parseInt(timestamp) })} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="chit_content" onChangeText={(chit_content) => this.setState({ chit_content: chit_content })} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="Location lat" onChangeText={(latitude) => this.setLat(latitude)} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="Location long" onChangeText={(longitude) => this.setLong(longitude)} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="First Name" onChangeText={(GName) => this.setGName(GName)} underlineColorAndroid="transparent"></TextInput>
-                <TextInput placeholder="Surname" onChangeText={(FName) => this.setFName(FName)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="ID" onChangeText={(chit_id) => this.setState({ chit_id: parseInt(chit_id) })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Time Written" onChangeText={(timestamp) => this.setState({ timestamp: parseInt(timestamp) })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="CHIT" onChangeText={(chit_content) => this.setState({ chit_content: chit_content })} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Latitude" onChangeText={(latitude) => this.setLat(latitude)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Longitude" onChangeText={(longitude) => this.setLong(longitude)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="First Name" onChangeText={(GivenName) => this.setGivenName(GivenName)} underlineColorAndroid="transparent"></TextInput>
+                <TextInput placeholder="Surname" onChangeText={(FamilyName) => this.setFamilyName(FamilyName)} underlineColorAndroid="transparent"></TextInput>
                 <TextInput placeholder="Email" onChangeText={(email) => this.setEmail(email)} underlineColorAndroid="transparent"></TextInput>
-                <Button title="Create chit" onPress={this.waitTimer} />
+                <Button title="POST" color="turquoise" onPress={this.waitTimer} />
+                <Text></Text>
+                <Button title="Upload a Photo" color="turquoise" onPress={this.upload} />
             </View>
         )
     }
